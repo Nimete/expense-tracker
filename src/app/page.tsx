@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 import { Expense, Settings } from "@/lib/types";
 import { getAllExpenses, addExpense, deleteExpense, updateExpense, getSettings, saveSettings } from "@/lib/storage";
 import AddExpenseForm from "@/components/AddExpenseForm";
@@ -19,21 +20,42 @@ export default function Home() {
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
+    let active = true;
+
     async function load() {
-      const [loadedExpenses, loadedSettings] = await Promise.all([
-        getAllExpenses(),
-        getSettings(),
-      ]);
-      setExpenses(loadedExpenses);
-      if (loadedSettings) {
-        setSettings({
-          currency: loadedSettings.currency,
-          theme: loadedSettings.theme === "dark" ? "dark" : "light",
-        });
+      try {
+        const [loadedExpenses, loadedSettings] = await Promise.all([
+          getAllExpenses(),
+          getSettings(),
+        ]);
+
+        if (!active) return;
+
+        setExpenses(loadedExpenses || []);
+        if (loadedSettings) {
+          setSettings({
+            currency: loadedSettings.currency,
+            theme: loadedSettings.theme === "dark" ? "dark" : "light",
+          });
+        }
+      } catch (error) {
+        console.error("Failed to load dashboard data:", error);
+        if (!active) return;
+
+        setExpenses([]);
+        setSettings({ currency: "USD", theme: "light" });
+      } finally {
+        if (active) {
+          setLoaded(true);
+        }
       }
-      setLoaded(true);
     }
+
     load();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -114,6 +136,21 @@ export default function Home() {
             >
               {settings.theme === "light" ? "🌙" : "☀️"}
             </button>
+            <SignedOut>
+              <SignInButton>
+                <button className="minimal-btn px-3 py-1 text-[11px] font-bold font-mono tracking-tighter">
+                  Sign In
+                </button>
+              </SignInButton>
+              <SignUpButton>
+                <button className="minimal-btn px-3 py-1 text-[11px] font-bold font-mono tracking-tighter">
+                  Sign Up
+                </button>
+              </SignUpButton>
+            </SignedOut>
+            <SignedIn>
+              <UserButton />
+            </SignedIn>
           </div>
         </div>
       </header>

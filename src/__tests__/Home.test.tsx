@@ -66,6 +66,18 @@ describe("Home Page Integration", () => {
     });
   });
 
+  it("should render the dashboard even if data loading fails", async () => {
+    const storage = await import("@/lib/storage");
+    vi.mocked(storage.getAllExpenses).mockRejectedValueOnce(new Error("DB unavailable"));
+    vi.mocked(storage.getSettings).mockRejectedValueOnce(new Error("Settings unavailable"));
+
+    render(<Home />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Dashboard")).toBeInTheDocument();
+    });
+  });
+
   it("should render all main sections after loading", async () => {
     render(<Home />);
     

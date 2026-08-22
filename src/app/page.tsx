@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import { useAuth, useUser, useClerk } from "@clerk/nextjs";
 import { Expense, Settings } from "@/lib/types";
 import { getAllExpenses, addExpense, deleteExpense, updateExpense, getSettings, saveSettings } from "@/lib/storage";
 import AddExpenseForm from "@/components/AddExpenseForm";
@@ -14,6 +14,9 @@ import SettingsPanel from "@/components/SettingsPanel";
 import QuickAdd from "@/components/QuickAdd";
 
 export default function Home() {
+  const { isSignedIn } = useAuth();
+  const { user } = useUser();
+  const { openSignIn, openSignUp, signOut } = useClerk();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [settings, setSettings] = useState<Settings>({ currency: "USD", theme: "light" });
   const [loaded, setLoaded] = useState(false);
@@ -136,21 +139,32 @@ export default function Home() {
             >
               {settings.theme === "light" ? "🌙" : "☀️"}
             </button>
-            <SignedOut>
-              <SignInButton>
-                <button className="minimal-btn px-3 py-1 text-[11px] font-bold font-mono tracking-tighter">
+            {!isSignedIn ? (
+              <>
+                <button
+                  onClick={() => openSignIn()}
+                  className="minimal-btn px-3 py-1 text-[11px] font-bold font-mono tracking-tighter"
+                >
                   Sign In
                 </button>
-              </SignInButton>
-              <SignUpButton>
-                <button className="minimal-btn px-3 py-1 text-[11px] font-bold font-mono tracking-tighter">
+                <button
+                  onClick={() => openSignUp()}
+                  className="minimal-btn px-3 py-1 text-[11px] font-bold font-mono tracking-tighter"
+                >
                   Sign Up
                 </button>
-              </SignUpButton>
-            </SignedOut>
-            <SignedIn>
-              <UserButton />
-            </SignedIn>
+              </>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-zinc-400">{user?.firstName || user?.emailAddresses?.[0]?.emailAddress}</span>
+                <button
+                  onClick={() => signOut()}
+                  className="minimal-btn px-3 py-1 text-[11px] font-bold font-mono tracking-tighter"
+                >
+                  Sign Out
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </header>

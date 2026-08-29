@@ -1,9 +1,19 @@
 "use client";
 
-import { useClerk } from "@clerk/nextjs";
+import { useEffect } from "react";
+import { useAuth, useClerk } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 
 export default function LandingPage() {
+  const { isSignedIn } = useAuth();
   const { openSignIn, openSignUp } = useClerk();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isSignedIn) {
+      router.push("/dashboard");
+    }
+  }, [isSignedIn, router]);
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0a0a0a] text-zinc-50">

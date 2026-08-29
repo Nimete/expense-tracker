@@ -73,9 +73,17 @@ export default function BudgetTracker({ expenses, currency, userId }: BudgetTrac
     return "#ef4444";
   };
 
+  const startEditing = (category: ExpenseCategory, currentLimit: number) => {
+    setEditCategory(category);
+    setLimitInput(currentLimit > 0 ? currentLimit.toString() : "");
+  };
+
   return (
     <section className="sharp-card p-6">
-      <h2 className="stat-label mb-6">Budget Tracker</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="stat-label">Budget Tracker</h2>
+        <span className="text-[9px] font-mono text-zinc-600 uppercase">{currentMonth}</span>
+      </div>
 
       <div className="space-y-6">
         {CATEGORIES.filter((c) => c !== "salary").map((category) => {
@@ -97,71 +105,76 @@ export default function BudgetTracker({ expenses, currency, userId }: BudgetTrac
                     {CATEGORY_LABELS[category]}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-[11px] font-mono">
-                  <span>{currency} {spent.toFixed(2)}</span>
-                  {limit > 0 && (
-                    <>
-                      <span className="text-zinc-600">/</span>
-                      <span className="text-zinc-500">{currency} {limit.toFixed(2)}</span>
-                    </>
-                  )}
-                </div>
+                {isEditing ? (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      value={limitInput}
+                      onChange={(e) => setLimitInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleSaveBudget();
+                        if (e.key === "Escape") setEditCategory(null);
+                      }}
+                      placeholder="Limit"
+                      className="w-24 px-2 py-1 text-[11px] font-mono bg-transparent border-b border-[#3b82f6] focus:outline-none text-right"
+                      autoFocus
+                    />
+                    <button
+                      onClick={handleSaveBudget}
+                      className="text-[10px] font-bold uppercase tracking-widest text-[#22c55e] hover:text-[#4ade80]"
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={() => setEditCategory(null)}
+                      className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 hover:text-zinc-400"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => startEditing(category, limit)}
+                    className="flex items-center gap-2 text-[11px] font-mono hover:text-white transition-colors group"
+                  >
+                    <span>{currency} {spent.toFixed(2)}</span>
+                    {limit > 0 && (
+                      <>
+                        <span className="text-zinc-600">/</span>
+                        <span className="text-zinc-500 group-hover:text-zinc-300">{currency} {limit.toFixed(2)}</span>
+                      </>
+                    )}
+                    <span className="text-[8px] text-zinc-700 group-hover:text-zinc-500">✎</span>
+                  </button>
+                )}
               </div>
 
               {limit > 0 ? (
-                <div className="w-full h-1 bg-[#18181b]">
+                <div
+                  className="w-full h-1 bg-[#18181b] cursor-pointer hover:h-1.5 transition-all"
+                  onClick={() => startEditing(category, limit)}
+                >
                   <div
                     className="h-full transition-all"
                     style={{ width: `${percent}%`, backgroundColor: getProgressColor(percent) }}
                   />
                 </div>
               ) : (
-                <p className="text-[9px] text-zinc-600 uppercase tracking-widest">No budget set</p>
+                <button
+                  onClick={() => startEditing(category, 0)}
+                  className="text-[9px] text-zinc-600 uppercase tracking-widest hover:text-zinc-400 transition-colors"
+                >
+                  + Set budget
+                </button>
               )}
 
-              {isEditing ? (
-                <div className="flex gap-2">
-                  <input
-                    type="number"
-                    value={limitInput}
-                    onChange={(e) => setLimitInput(e.target.value)}
-                    placeholder="Limit"
-                    className="flex-1 px-2 py-1 text-[11px] font-mono bg-transparent border-b border-[#3f3f46] focus:border-[#3b82f6] focus:outline-none"
-                    autoFocus
-                  />
-                  <button
-                    onClick={handleSaveBudget}
-                    className="text-[10px] font-bold uppercase tracking-widest text-[#22c55e] hover:text-[#4ade80]"
-                  >
-                    Save
-                  </button>
-                  <button
-                    onClick={() => setEditCategory(null)}
-                    className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 hover:text-zinc-400"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              ) : (
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => {
-                      setEditCategory(category);
-                      setLimitInput(limit > 0 ? limit.toString() : "");
-                    }}
-                    className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-zinc-100 transition-colors"
-                  >
-                    {limit > 0 ? "Edit" : "Set Budget"}
-                  </button>
-                  {budget && (
-                    <button
-                      onClick={() => handleDeleteBudget(budget.id)}
-                      className="text-[10px] font-bold uppercase tracking-widest text-[#ef4444] hover:text-[#f87171]"
-                    >
-                      Remove
-                    </button>
-                  )}
-                </div>
+              {isEditing && budget && (
+                <button
+                  onClick={() => handleDeleteBudget(budget.id)}
+                  className="text-[9px] font-bold uppercase tracking-widest text-[#ef4444] hover:text-[#f87171] mt-1"
+                >
+                  Remove budget
+                </button>
               )}
             </div>
           );

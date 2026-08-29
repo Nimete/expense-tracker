@@ -24,6 +24,7 @@ export interface Budget {
 export interface Settings {
   currency: string;
   theme: "light" | "dark";
+  capitalAmount: number;
 }
 
 export const CATEGORY_COLORS: Record<ExpenseCategory, string> = {

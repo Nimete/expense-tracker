@@ -8,11 +8,12 @@ interface BudgetTrackerProps {
   expenses: Expense[];
   currency: string;
   userId: string;
+  capitalAmount: number;
 }
 
 const CATEGORIES: ExpenseCategory[] = ["finances", "subscriptions", "grocery", "salary"];
 
-export default function BudgetTracker({ expenses, currency, userId }: BudgetTrackerProps) {
+export default function BudgetTracker({ expenses, currency, userId, capitalAmount }: BudgetTrackerProps) {
   const now = new Date();
   const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   const [budgets, setBudgets] = useState<Budget[]>([]);
@@ -78,12 +79,42 @@ export default function BudgetTracker({ expenses, currency, userId }: BudgetTrac
     setLimitInput(currentLimit > 0 ? currentLimit.toString() : "");
   };
 
+  const totalSpent = monthExpenses.reduce((sum, e) => sum + e.amount, 0);
+  const remaining = capitalAmount - totalSpent;
+  const capitalPercent = capitalAmount > 0 ? Math.min((totalSpent / capitalAmount) * 100, 100) : 0;
+
   return (
     <section className="sharp-card p-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="stat-label">Budget Tracker</h2>
         <span className="text-[9px] font-mono text-zinc-600 uppercase">{currentMonth}</span>
       </div>
+
+      {/* Capital Summary */}
+      {capitalAmount > 0 && (
+        <div className="mb-6 p-4 bg-[#111111] border border-[#222222]">
+          <div className="flex items-center justify-between mb-2">
+            <span className="stat-label">Monthly Capital</span>
+            <span className="text-[11px] font-mono text-zinc-400">{currency} {capitalAmount.toFixed(2)}</span>
+          </div>
+          <div className="flex items-center justify-between mb-3">
+            <span className="stat-label">Spent</span>
+            <span className="text-[11px] font-mono">{currency} {totalSpent.toFixed(2)}</span>
+          </div>
+          <div className="w-full h-1.5 bg-[#18181b] mb-2">
+            <div
+              className="h-full transition-all"
+              style={{ width: `${capitalPercent}%`, backgroundColor: getProgressColor(capitalPercent) }}
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-[9px] text-zinc-600 uppercase tracking-widest">Remaining</span>
+            <span className={`text-[11px] font-mono font-bold ${remaining >= 0 ? "text-[#22c55e]" : "text-[#ef4444]"}`}>
+              {currency} {remaining.toFixed(2)}
+            </span>
+          </div>
+        </div>
+      )}
 
       <div className="space-y-6">
         {CATEGORIES.filter((c) => c !== "salary").map((category) => {

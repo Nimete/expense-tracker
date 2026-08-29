@@ -21,7 +21,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const userId = user?.id || "";
   const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [settings, setSettings] = useState<Settings>({ currency: "USD", theme: "light" });
+  const [settings, setSettings] = useState<Settings>({ currency: "USD", theme: "light", capitalAmount: 0 });
   const [loaded, setLoaded] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -43,6 +43,7 @@ export default function DashboardPage() {
           setSettings({
             currency: loadedSettings.currency,
             theme: loadedSettings.theme === "dark" ? "dark" : "light",
+            capitalAmount: loadedSettings.capitalAmount || 0,
           });
         }
       } catch (error) {
@@ -50,7 +51,7 @@ export default function DashboardPage() {
         if (!active) return;
 
         setExpenses([]);
-        setSettings({ currency: "USD", theme: "light" });
+        setSettings({ currency: "USD", theme: "light", capitalAmount: 0 });
       } finally {
         if (active) {
           setLoaded(true);
@@ -112,6 +113,11 @@ export default function DashboardPage() {
     const idx = currencies.indexOf(settings.currency);
     const newCurrency = currencies[(idx + 1) % currencies.length];
     const newSettings: Settings = { ...settings, currency: newCurrency };
+    setSettings(newSettings);
+    await saveSettings(userId, newSettings);
+  };
+
+  const handleSettingsChange = async (newSettings: Settings) => {
     setSettings(newSettings);
     await saveSettings(userId, newSettings);
   };
@@ -183,7 +189,7 @@ export default function DashboardPage() {
           <div className="lg:col-span-8 space-y-8">
             <ChartsPanel expenses={expenses} currency={settings.currency} />
             <div key={refreshKey}>
-              <BudgetTracker expenses={expenses} currency={settings.currency} userId={userId} />
+              <BudgetTracker expenses={expenses} currency={settings.currency} userId={userId} capitalAmount={settings.capitalAmount} />
             </div>
             <ExpenseList expenses={expenses} onDelete={handleDelete} onUpdate={handleUpdate} currency={settings.currency} />
           </div>
@@ -193,6 +199,7 @@ export default function DashboardPage() {
           expenses={expenses}
           budgets={[]}
           settings={settings}
+          onSettingsChange={handleSettingsChange}
           onRestore={handleRestore}
           currency={settings.currency}
           userId={userId}

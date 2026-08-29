@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "llama-3.1-8b-instant",
+        model: "gpt-oss-120b",
         messages: [
           {
             role: "system",
@@ -89,7 +89,7 @@ No markdown, no explanation, just the JSON object.`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "llama-3.1-8b-instant",
+        model: "gpt-oss-120b",
         messages: [
           {
             role: "system",

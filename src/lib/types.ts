@@ -2,6 +2,7 @@ export type ExpenseCategory = "finances" | "subscriptions" | "grocery" | "salary
 
 export interface Expense {
   id: string;
+  userId: string;
   name: string;
   amount: number;
   category: ExpenseCategory;
@@ -14,6 +15,7 @@ export interface Expense {
 
 export interface Budget {
   id: string;
+  userId: string;
   category: ExpenseCategory;
   monthlyLimit: number;
   month: string;

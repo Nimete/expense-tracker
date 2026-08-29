@@ -7,11 +7,12 @@ import { parseExpense } from "@/lib/ai";
 interface AddExpenseFormProps {
   onAdd: (expense: Expense) => void;
   currency: string;
+  userId: string;
 }
 
 const CATEGORIES: ExpenseCategory[] = ["finances", "subscriptions", "grocery", "salary"];
 
-export default function AddExpenseForm({ onAdd, currency }: AddExpenseFormProps) {
+export default function AddExpenseForm({ onAdd, currency, userId }: AddExpenseFormProps) {
   const [aiInput, setAiInput] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState("");
@@ -49,6 +50,7 @@ export default function AddExpenseForm({ onAdd, currency }: AddExpenseFormProps)
 
     const expense: Expense = {
       id: crypto.randomUUID(),
+      userId,
       name,
       amount: parseFloat(amount),
       category,

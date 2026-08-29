@@ -11,17 +11,17 @@ async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
   return res.json();
 }
 
-export async function getAllExpenses(): Promise<Expense[]> {
-  return apiFetch<Expense[]>("/api/expenses");
+export async function getAllExpenses(userId: string): Promise<Expense[]> {
+  return apiFetch<Expense[]>(`/api/expenses?userId=${encodeURIComponent(userId)}`);
 }
 
-export async function getExpensesByMonth(month: string): Promise<Expense[]> {
-  const all = await getAllExpenses();
+export async function getExpensesByMonth(userId: string, month: string): Promise<Expense[]> {
+  const all = await getAllExpenses(userId);
   return all.filter((e) => e.date.startsWith(month));
 }
 
-export async function getExpensesByCategory(category: string): Promise<Expense[]> {
-  const all = await getAllExpenses();
+export async function getExpensesByCategory(userId: string, category: string): Promise<Expense[]> {
+  const all = await getAllExpenses(userId);
   return all.filter((e) => e.category === category);
 }
 
@@ -41,14 +41,14 @@ export async function updateExpense(expense: Expense): Promise<void> {
   });
 }
 
-export async function deleteExpense(id: string): Promise<void> {
-  await apiFetch(`/api/expenses?id=${encodeURIComponent(id)}`, {
+export async function deleteExpense(id: string, userId: string): Promise<void> {
+  await apiFetch(`/api/expenses?id=${encodeURIComponent(id)}&userId=${encodeURIComponent(userId)}`, {
     method: "DELETE",
   });
 }
 
-export async function getBudgets(month: string): Promise<Budget[]> {
-  return apiFetch<Budget[]>(`/api/budgets?month=${encodeURIComponent(month)}`);
+export async function getBudgets(userId: string, month: string): Promise<Budget[]> {
+  return apiFetch<Budget[]>(`/api/budgets?userId=${encodeURIComponent(userId)}&month=${encodeURIComponent(month)}`);
 }
 
 export async function setBudget(budget: Budget): Promise<void> {
@@ -59,41 +59,41 @@ export async function setBudget(budget: Budget): Promise<void> {
   });
 }
 
-export async function deleteBudget(id: string): Promise<void> {
-  await apiFetch(`/api/budgets?id=${encodeURIComponent(id)}`, {
+export async function deleteBudget(id: string, userId: string): Promise<void> {
+  await apiFetch(`/api/budgets?id=${encodeURIComponent(id)}&userId=${encodeURIComponent(userId)}`, {
     method: "DELETE",
   });
 }
 
-export async function getSettings(): Promise<Settings | null> {
-  return apiFetch<Settings | null>("/api/settings");
+export async function getSettings(userId: string): Promise<Settings | null> {
+  return apiFetch<Settings | null>(`/api/settings?userId=${encodeURIComponent(userId)}`);
 }
 
-export async function saveSettings(settings: Settings): Promise<void> {
+export async function saveSettings(userId: string, settings: Settings): Promise<void> {
   await apiFetch("/api/settings", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(settings),
+    body: JSON.stringify({ userId, ...settings }),
   });
 }
 
-export async function getAllData() {
+export async function getAllData(userId: string) {
   const [expenses, budgets, settings] = await Promise.all([
-    getAllExpenses(),
-    apiFetch<Budget[]>("/api/budgets"),
-    getSettings(),
+    getAllExpenses(userId),
+    getBudgets(userId, ""),
+    getSettings(userId),
   ]);
   return { expenses, budgets, settings };
 }
 
-export async function restoreAllData(data: {
+export async function restoreAllData(userId: string, data: {
   expenses: Expense[];
   budgets: Budget[];
   settings: Settings | null;
 }) {
   await Promise.all([
-    ...data.expenses.map((e) => addExpense(e)),
-    ...data.budgets.map((b) => setBudget(b)),
-    data.settings ? saveSettings(data.settings) : Promise.resolve(),
+    ...data.expenses.map((e) => addExpense({ ...e, userId })),
+    ...data.budgets.map((b) => setBudget({ ...b, userId })),
+    data.settings ? saveSettings(userId, data.settings) : Promise.resolve(),
   ]);
 }

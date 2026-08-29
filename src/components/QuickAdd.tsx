@@ -5,6 +5,7 @@ import { Expense, ExpenseCategory } from "@/lib/types";
 interface QuickAddProps {
   onAdd: (expense: Expense) => void;
   currency: string;
+  userId: string;
 }
 
 interface QuickItem {
@@ -22,10 +23,11 @@ const QUICK_ITEMS: QuickItem[] = [
   { name: "Electric Bill", amount: 80.0, category: "finances" },
 ];
 
-export default function QuickAdd({ onAdd, currency }: QuickAddProps) {
+export default function QuickAdd({ onAdd, currency, userId }: QuickAddProps) {
   const handleClick = async (item: QuickItem) => {
     const expense: Expense = {
       id: crypto.randomUUID(),
+      userId,
       name: item.name,
       amount: item.amount,
       category: item.category,

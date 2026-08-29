@@ -7,11 +7,12 @@ import { getBudgets, setBudget, deleteBudget } from "@/lib/storage";
 interface BudgetTrackerProps {
   expenses: Expense[];
   currency: string;
+  userId: string;
 }
 
 const CATEGORIES: ExpenseCategory[] = ["finances", "subscriptions", "grocery", "salary"];
 
-export default function BudgetTracker({ expenses, currency }: BudgetTrackerProps) {
+export default function BudgetTracker({ expenses, currency, userId }: BudgetTrackerProps) {
   const now = new Date();
   const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   const [budgets, setBudgets] = useState<Budget[]>([]);
@@ -19,8 +20,10 @@ export default function BudgetTracker({ expenses, currency }: BudgetTrackerProps
   const [limitInput, setLimitInput] = useState("");
 
   useEffect(() => {
-    getBudgets(currentMonth).then(setBudgets);
-  }, [currentMonth]);
+    if (userId) {
+      getBudgets(userId, currentMonth).then(setBudgets);
+    }
+  }, [currentMonth, userId]);
 
   const monthExpenses = expenses.filter(
     (e) => e.date.startsWith(currentMonth) && e.category !== "salary"
@@ -39,6 +42,7 @@ export default function BudgetTracker({ expenses, currency }: BudgetTrackerProps
     const existing = budgets.find((b) => b.category === editCategory);
     const budget: Budget = {
       id: existing?.id || crypto.randomUUID(),
+      userId,
       category: editCategory,
       monthlyLimit: limit,
       month: currentMonth,
@@ -59,7 +63,7 @@ export default function BudgetTracker({ expenses, currency }: BudgetTrackerProps
   };
 
   const handleDeleteBudget = async (id: string) => {
-    await deleteBudget(id);
+    await deleteBudget(id, userId);
     setBudgets((prev) => prev.filter((b) => b.id !== id));
   };
 

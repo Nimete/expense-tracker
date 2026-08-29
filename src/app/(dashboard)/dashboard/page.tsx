@@ -19,6 +19,7 @@ export default function DashboardPage() {
   const { user } = useUser();
   const { openSignIn, signOut } = useClerk();
   const router = useRouter();
+  const userId = user?.id || "";
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [settings, setSettings] = useState<Settings>({ currency: "USD", theme: "light" });
   const [loaded, setLoaded] = useState(false);
@@ -28,10 +29,11 @@ export default function DashboardPage() {
     let active = true;
 
     async function load() {
+      if (!userId) return;
       try {
         const [loadedExpenses, loadedSettings] = await Promise.all([
-          getAllExpenses(),
-          getSettings(),
+          getAllExpenses(userId),
+          getSettings(userId),
         ]);
 
         if (!active) return;
@@ -61,7 +63,7 @@ export default function DashboardPage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
     if (loaded) {
@@ -72,8 +74,9 @@ export default function DashboardPage() {
 
   const handleAdd = async (expense: Expense) => {
     try {
-      await addExpense(expense);
-      setExpenses((prev) => [...prev, expense]);
+      const expenseWithUser = { ...expense, userId };
+      await addExpense(expenseWithUser);
+      setExpenses((prev) => [...prev, expenseWithUser]);
     } catch (err) {
       console.error("Failed to save expense:", err);
       throw err;
@@ -81,17 +84,18 @@ export default function DashboardPage() {
   };
 
   const handleUpdate = async (expense: Expense) => {
-    await updateExpense(expense);
-    setExpenses((prev) => prev.map((e) => (e.id === expense.id ? expense : e)));
+    const expenseWithUser = { ...expense, userId };
+    await updateExpense(expenseWithUser);
+    setExpenses((prev) => prev.map((e) => (e.id === expense.id ? expenseWithUser : e)));
   };
 
   const handleDelete = async (id: string) => {
-    await deleteExpense(id);
+    await deleteExpense(id, userId);
     setExpenses((prev) => prev.filter((e) => e.id !== id));
   };
 
   const handleRestore = async () => {
-    const loadedExpenses = await getAllExpenses();
+    const loadedExpenses = await getAllExpenses(userId);
     setExpenses(loadedExpenses);
     setRefreshKey((k) => k + 1);
   };
@@ -100,7 +104,7 @@ export default function DashboardPage() {
     const newTheme: "light" | "dark" = settings.theme === "light" ? "dark" : "light";
     const newSettings: Settings = { ...settings, theme: newTheme };
     setSettings(newSettings);
-    await saveSettings(newSettings);
+    await saveSettings(userId, newSettings);
   };
 
   const cycleCurrency = async () => {
@@ -109,7 +113,7 @@ export default function DashboardPage() {
     const newCurrency = currencies[(idx + 1) % currencies.length];
     const newSettings: Settings = { ...settings, currency: newCurrency };
     setSettings(newSettings);
-    await saveSettings(newSettings);
+    await saveSettings(userId, newSettings);
   };
 
   if (!loaded) {
@@ -168,18 +172,18 @@ export default function DashboardPage() {
 
       <main className="max-w-5xl mx-auto px-4 py-8 space-y-8">
         <QuickStats expenses={expenses} currency={settings.currency} />
-        <QuickAdd onAdd={handleAdd} currency={settings.currency} />
+        <QuickAdd onAdd={handleAdd} currency={settings.currency} userId={userId} />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <div className="lg:col-span-4 space-y-8">
-            <AddExpenseForm onAdd={handleAdd} currency={settings.currency} />
+            <AddExpenseForm onAdd={handleAdd} currency={settings.currency} userId={userId} />
             <AIInsightsPanel expenses={expenses} currency={settings.currency} />
           </div>
 
           <div className="lg:col-span-8 space-y-8">
             <ChartsPanel expenses={expenses} currency={settings.currency} />
             <div key={refreshKey}>
-              <BudgetTracker expenses={expenses} currency={settings.currency} />
+              <BudgetTracker expenses={expenses} currency={settings.currency} userId={userId} />
             </div>
             <ExpenseList expenses={expenses} onDelete={handleDelete} onUpdate={handleUpdate} currency={settings.currency} />
           </div>
@@ -191,6 +195,7 @@ export default function DashboardPage() {
           settings={settings}
           onRestore={handleRestore}
           currency={settings.currency}
+          userId={userId}
         />
       </main>
     </div>

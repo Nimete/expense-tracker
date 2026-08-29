@@ -10,9 +10,10 @@ interface SettingsPanelProps {
   settings: Settings;
   onRestore: () => void;
   currency: string;
+  userId: string;
 }
 
-export default function SettingsPanel({ expenses, settings, onRestore, currency }: SettingsPanelProps) {
+export default function SettingsPanel({ expenses, settings, onRestore, currency, userId }: SettingsPanelProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const exportCSV = () => {
@@ -37,7 +38,7 @@ export default function SettingsPanel({ expenses, settings, onRestore, currency 
   };
 
   const backupData = async () => {
-    const data = await getAllData();
+    const data = await getAllData(userId);
     const json = JSON.stringify(data, null, 2);
     const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -58,7 +59,7 @@ export default function SettingsPanel({ expenses, settings, onRestore, currency 
       if (!data.expenses || !Array.isArray(data.expenses)) {
         throw new Error("Invalid backup file");
       }
-      await restoreAllData(data);
+      await restoreAllData(userId, data);
       onRestore();
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to restore. Invalid file.");

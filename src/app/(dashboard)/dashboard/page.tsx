@@ -177,7 +177,7 @@ export default function DashboardPage() {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-8 space-y-8">
-        <QuickStats expenses={expenses} currency={settings.currency} />
+        <QuickStats expenses={expenses} currency={settings.currency} capitalAmount={settings.capitalAmount} />
         <QuickAdd onAdd={handleAdd} currency={settings.currency} userId={userId} />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">

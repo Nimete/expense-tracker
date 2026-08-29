@@ -5,9 +5,10 @@ import { Expense, CATEGORY_COLORS, CATEGORY_LABELS, ExpenseCategory } from "@/li
 interface QuickStatsProps {
   expenses: Expense[];
   currency: string;
+  capitalAmount: number;
 }
 
-export default function QuickStats({ expenses, currency }: QuickStatsProps) {
+export default function QuickStats({ expenses, currency, capitalAmount }: QuickStatsProps) {
   const now = new Date();
   const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 
@@ -18,7 +19,7 @@ export default function QuickStats({ expenses, currency }: QuickStatsProps) {
   const totalIncome = monthExpenses
     .filter((e) => e.category === "salary")
     .reduce((sum, e) => sum + e.amount, 0);
-  const remaining = totalIncome - totalSpent;
+  const remaining = capitalAmount > 0 ? capitalAmount - totalSpent : totalIncome - totalSpent;
 
   const categoryTotals = monthExpenses
     .filter((e) => e.category !== "salary")

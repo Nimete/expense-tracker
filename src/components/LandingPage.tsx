@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useAuth, useClerk } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
+import { Sparkles, PieChart, BarChart3 } from "lucide-react";
 
 export default function LandingPage() {
   const { isSignedIn } = useAuth();
@@ -160,12 +161,12 @@ export default function LandingPage() {
 
           <div className="grid md:grid-cols-3 gap-8">
             {[
-              { icon: "⚡", title: "AI Smart Input", desc: "Type naturally — \"coffee 4.50\" — and AI categorizes it instantly. No forms, no friction.", accent: "#3b82f6" },
-              { icon: "📊", title: "Budget Tracking", desc: "Set monthly limits per category. Visual progress bars show exactly where you stand.", accent: "#22c55e" },
-              { icon: "📈", title: "Visual Analytics", desc: "Pie charts, bar graphs, and daily spending lines. See patterns you'd never catch in a spreadsheet.", accent: "#8b5cf6" },
+              { icon: Sparkles, title: "AI Smart Input", desc: "Type naturally — \"coffee 4.50\" — and AI categorizes it instantly. No forms, no friction.", accent: "#3b82f6" },
+              { icon: PieChart, title: "Budget Tracking", desc: "Set monthly limits per category. Visual progress bars show exactly where you stand.", accent: "#22c55e" },
+              { icon: BarChart3, title: "Visual Analytics", desc: "Pie charts, bar graphs, and daily spending lines. See patterns you'd never catch in a spreadsheet.", accent: "#8b5cf6" },
             ].map((f, i) => (
               <div key={i} className="bg-[#111111] border border-[#222222] p-8 space-y-6 hover:border-zinc-500 transition-colors">
-                <div className="text-3xl">{f.icon}</div>
+                <f.icon className="w-7 h-7" style={{ color: f.accent }} strokeWidth={1.5} />
                 <div className="space-y-2">
                   <h3 className="text-sm font-bold uppercase tracking-[0.15em]">{f.title}</h3>
                   <p className="text-zinc-400 text-sm leading-relaxed">{f.desc}</p>
